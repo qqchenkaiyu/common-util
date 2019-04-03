@@ -7,22 +7,25 @@
     <groupId>com.cky</groupId>
     <artifactId>common-util</artifactId>
     <version>1.0</version>
-
+    <!-- 定义版本号 -->
+    <properties>
+        <tomcat.version>9.0.16</tomcat.version>
+    </properties>
     <dependencies>
     <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId> tomcat-embed-core</artifactId>
-        <version>8.5.5</version>
+        <version>${tomcat.version}</version>
     </dependency>
     <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId> tomcat-embed-el</artifactId>
-        <version>8.5.5</version>
+        <version>${tomcat.version}</version>
     </dependency>
     <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId> tomcat-embed-jasper</artifactId>
-        <version>8.5.5</version>
+        <version>${tomcat.version}</version>
     </dependency>
     </dependencies>
 </project>
