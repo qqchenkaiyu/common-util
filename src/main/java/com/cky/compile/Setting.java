@@ -37,9 +37,11 @@ public class Setting {
         File file = null;
         if (isAbsolutePath(path)) {
             file = new File(path);
+            Assert.isTrue(file.exists(),path+" is not exist");
         } else {
             //如果是相对路径
             URL resource = getClass().getClassLoader().getResource(path);
+            Assert.notNull(resource,path+" is not exist");
             file = new File(resource.toURI().getPath());
         }
         property.load(new FileReader(file));
@@ -71,7 +73,9 @@ public class Setting {
                 field.set(target, Long.parseLong(data.toString()));
             } else if (name.endsWith("nteger") || name.equals("int")) {
                 field.set(target, Integer.parseInt(data.toString()));
-            } else {
+            } else if (name.endsWith("oolean")) {
+                field.set(target, Boolean.parseBoolean(data.toString()));
+            }else {
                 field.set(target, data);
             }
         } catch (IllegalAccessException e) {
@@ -80,7 +84,7 @@ public class Setting {
     }
 
     public static void main(String[] args) throws Exception {
-        hutooltest.RedisSetting redisSetting3 = Setting.readSettingToBean("redis.setting",
+        hutooltest.RedisSetting redisSetting3 = Setting.readSettingToBean("C:\\U1sers\\c30000456\\Desktop\\ideaWorkSpace\\ojtest\\src\\main\\resources\\redis.setting",
             hutooltest.RedisSetting.class);
         System.out.println(redisSetting3);
     }
