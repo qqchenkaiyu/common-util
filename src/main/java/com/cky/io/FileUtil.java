@@ -15,20 +15,24 @@ public class FileUtil {
         return '/' == path.charAt(0) || path.matches("^[a-zA-Z]:([/\\\\].*)?");
     }
 
-    public static File getAbsoluteFile(String path) throws URISyntaxException {
+    public static File getAbsoluteFile(String path)  {
         File file=new File(getAbsolutePath(path));
         Assert.isTrue(file.exists(),path+" is not exist");
         return file;
     }
 
-    public static String getAbsolutePath(String path) throws URISyntaxException {
+    public static String getAbsolutePath(String path)  {
         if (isAbsolutePath(path)) {
             return path;
         } else {
             //如果是相对路径
             URL resource = Thread.currentThread().getContextClassLoader().getResource(path);
             Assert.notNull(resource,path+" is not exist");
-            return new File(resource.toURI()).getAbsolutePath();
+            try {
+                return new File(resource.toURI()).getAbsolutePath();
+            } catch (URISyntaxException e) {
+                return path;
+            }
         }
     }
 }
