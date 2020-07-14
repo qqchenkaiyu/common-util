@@ -2,18 +2,21 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2019-2020. All rights reserved.
  */
 
-package hutooltest;
+package com.cky.setting;
 
-import cn.hutool.core.lang.Assert;
+
+import com.cky.annotation.AnnotationUtil;
+import com.cky.check.Assert;
 
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Properties;
+
+import static com.cky.io.FileUtil.getAbsoluteFile;
 
 /**
  * 功能描述
@@ -32,30 +35,21 @@ public class Setting {
     }
 
     public Setting(String path, Charset defaultCharset) throws Exception {
-        Assert.notBlank(path, "Blank setting path !", new Object[0]);
+        Assert.notBlank(path, "Blank setting path !");
         //如果是绝对路径
-        File file = null;
-        if (isAbsolutePath(path)) {
-            file = new File(path);
-            Assert.isTrue(file.exists(),path+" is not exist");
-        } else {
-            //如果是相对路径
-            URL resource = getClass().getClassLoader().getResource(path);
-            Assert.notNull(resource,path+" is not exist");
-            file = new File(resource.toURI().getPath());
-        }
+        File file = getAbsoluteFile(path);
         property.load(new FileReader(file));
 
     }
 
-    private static boolean isAbsolutePath(String path) {
-        return '/' == path.charAt(0) || path.matches("^[a-zA-Z]:([/\\\\].*)?");
-    }
-
     private  <T> T toBean(T target){
         Field[] declaredFields = target.getClass().getDeclaredFields();
-        Arrays.stream(declaredFields).filter(field -> property.containsKey(field.getName())).forEach(field -> {
-            safeSetField(field, target, property.get(field.getName()));
+        Arrays.stream(declaredFields).forEach(field -> {
+            Object annotationValue = AnnotationUtil.getAnnotationValue(field, PropName.class);
+            String propName=annotationValue==null?field.getName():annotationValue.toString();
+            if(property.containsKey(propName)) {
+                safeSetField(field, target, property.get(propName));
+            }
         });
 
         return target;
@@ -83,9 +77,5 @@ public class Setting {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        hutooltest.RedisSetting redisSetting3 = Setting.readSettingToBean("C:\\U1sers\\c30000456\\Desktop\\ideaWorkSpace\\ojtest\\src\\main\\resources\\redis.setting",
-            hutooltest.RedisSetting.class);
-        System.out.println(redisSetting3);
-    }
+
 }
