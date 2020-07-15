@@ -10,6 +10,7 @@ import com.cky.check.Assert;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -30,46 +31,53 @@ public class Setting {
 
     Properties property = new Properties();
 
-    public Setting(String path) throws Exception {
+    public Setting(String path) throws IOException {
         this(path, DEFAULT_CHARSET);
     }
 
-    public Setting(String path, Charset defaultCharset) throws Exception {
+    public Setting(String path, Charset defaultCharset) throws IOException {
         Assert.notBlank(path, "Blank setting path !");
         //如果是绝对路径
         File file = getAbsoluteFile(path);
-        property.load(new FileReader(file));
-
+        FileReader fileReader = new FileReader(file);
+        property.load(fileReader);
+        fileReader.close();
     }
 
-    private  <T> T toBean(T target){
+    private <T> T toBean(T target) {
         Field[] declaredFields = target.getClass().getDeclaredFields();
         Arrays.stream(declaredFields).forEach(field -> {
             Object annotationValue = AnnotationUtil.getAnnotationValue(field, PropName.class);
-            String propName=annotationValue==null?field.getName():annotationValue.toString();
-            if(property.containsKey(propName)) {
+            String propName = annotationValue == null ? field.getName() : annotationValue.toString();
+            if (property.containsKey(propName)) {
                 safeSetField(field, target, property.get(propName));
             }
         });
 
         return target;
     }
-    private  <T> T toBean(Class<T> clazz) throws IllegalAccessException, InstantiationException {
-        return toBean( clazz.newInstance());
+
+    private <T> T toBean(Class<T> clazz) throws IllegalAccessException, InstantiationException {
+        return toBean(clazz.newInstance());
     }
-    public  static  <T> T readSettingToBean(String path,Class<T> clazz) throws Exception {
+
+    public static <T> T readSettingToBean(String path, Class<T> clazz) throws IOException, InstantiationException, IllegalAccessException {
         return new Setting(path).toBean(clazz);
     }
+
     private void safeSetField(Field field, Object target, Object data) {
         try {
             String name = field.getType().getName();
+            field.setAccessible(true);
             if (name.endsWith("ong")) {
                 field.set(target, Long.parseLong(data.toString()));
             } else if (name.endsWith("nteger") || name.equals("int")) {
                 field.set(target, Integer.parseInt(data.toString()));
             } else if (name.endsWith("oolean")) {
                 field.set(target, Boolean.parseBoolean(data.toString()));
-            }else {
+            } else if (name.endsWith("hort")) {
+                field.set(target, Short.parseShort(data.toString()));
+            } else {
                 field.set(target, data);
             }
         } catch (IllegalAccessException e) {
