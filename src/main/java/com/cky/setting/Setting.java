@@ -4,9 +4,12 @@
 
 package com.cky.setting;
 
+import static com.cky.io.FileUtil.getAbsoluteFile;
 
 import com.cky.annotation.AnnotationUtil;
 import com.cky.check.Assert;
+import com.cky.io.IoUtil;
+import com.cky.strUtil.StringUtil;
 
 import java.io.File;
 import java.io.FileReader;
@@ -16,8 +19,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Properties;
-
-import static com.cky.io.FileUtil.getAbsoluteFile;
 
 /**
  * 功能描述
@@ -64,21 +65,27 @@ public class Setting {
     public static <T> T readSettingToBean(String path, Class<T> clazz) throws IOException, InstantiationException, IllegalAccessException {
         return new Setting(path).toBean(clazz);
     }
-
+    public static void changeProperty(String path, String property, String value) throws IOException, InstantiationException, IllegalAccessException {
+        String code= IoUtil.readStringFromPath(path,Charset.forName("GBK"));
+        code=code.replaceFirst(property+"=.+",property+"="+value);
+        IoUtil.writeStringToPath( path, code);
+    }
     private void safeSetField(Field field, Object target, Object data) {
         try {
             String name = field.getType().getName();
             field.setAccessible(true);
-            if (name.endsWith("ong")) {
-                field.set(target, Long.parseLong(data.toString()));
-            } else if (name.endsWith("nteger") || name.equals("int")) {
-                field.set(target, Integer.parseInt(data.toString()));
-            } else if (name.endsWith("oolean")) {
-                field.set(target, Boolean.parseBoolean(data.toString()));
-            } else if (name.endsWith("hort")) {
-                field.set(target, Short.parseShort(data.toString()));
-            } else {
-                field.set(target, data);
+            if(!StringUtil.isBlank((String)data)){
+                if (name.endsWith("ong")) {
+                    field.set(target, Long.parseLong(data.toString()));
+                } else if (name.endsWith("nteger") || name.equals("int")) {
+                    field.set(target, Integer.parseInt(data.toString()));
+                } else if (name.endsWith("oolean")) {
+                    field.set(target, Boolean.parseBoolean(data.toString()));
+                } else if (name.endsWith("hort")) {
+                    field.set(target, Short.parseShort(data.toString()));
+                } else {
+                    field.set(target, data);
+                }
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
