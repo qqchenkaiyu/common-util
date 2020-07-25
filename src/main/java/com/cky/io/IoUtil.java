@@ -101,4 +101,13 @@ public class IoUtil {
         copy(in, out);
         return out;
     }
+public static BufferedReader getReader(String path) throws IOException {
+        File absoluteFile = getAbsoluteFile(path);
+        return new BufferedReader(new InputStreamReader(new FileInputStream(absoluteFile), StandardCharsets.UTF_8));
+    }
+
+    public static BufferedWriter getWriter(String path) throws IOException {
+        File absoluteFile = getAbsoluteFile(path);
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(absoluteFile), StandardCharsets.UTF_8));
+    }
 }
