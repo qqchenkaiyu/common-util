@@ -1,11 +1,23 @@
 package com.cky.io;
 
-import cn.hutool.core.io.FastByteArrayOutputStream;
+import static com.cky.io.FileUtil.getAbsoluteFile;
+
 import cn.hutool.core.io.IORuntimeException;
-import cn.hutool.core.io.StreamProgress;
 import cn.hutool.core.lang.Assert;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -22,10 +34,20 @@ public class IoUtil {
      * 数据流末尾
      */
     public static final int EOF = -1;
+    public static String readStringFromPath(String path,Charset... charsets)  {
+        Assert.isTrue(charsets.length<2);
+        try (FileInputStream inputStream=getInputStream(path);){
+            return readStringFromStream(inputStream, charsets.length==1?charsets[0]:DEFAULT_CHARSET);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     public static String readStringFromStream(InputStream inputStream)  {
         return readStringFromStream(inputStream, DEFAULT_CHARSET);
     }
     public static String readStringFromStream(InputStream inputStream, Charset charset)  {
+
         ByteArrayOutputStream read = null;
         try {
             read = read(inputStream);
@@ -101,13 +123,24 @@ public class IoUtil {
         copy(in, out);
         return out;
     }
-public static BufferedReader getReader(String path) throws IOException {
+    public static FileInputStream getInputStream(String path) throws IOException {
         File absoluteFile = getAbsoluteFile(path);
-        return new BufferedReader(new InputStreamReader(new FileInputStream(absoluteFile), StandardCharsets.UTF_8));
+        return new FileInputStream(absoluteFile);
+    }
+    public static BufferedReader getReader(String path) throws IOException {
+        return new BufferedReader(new InputStreamReader(getInputStream(path), StandardCharsets.UTF_8));
     }
 
     public static BufferedWriter getWriter(String path) throws IOException {
         File absoluteFile = getAbsoluteFile(path);
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(absoluteFile), StandardCharsets.UTF_8));
+    }
+
+    public static void writeStringToPath(String path, String code) {
+        try (BufferedWriter writer = IoUtil.getWriter(path)){
+            writer.write(code);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 }
